@@ -1,0 +1,74 @@
+#define TICKET_PRICE 50 // price of each lottery ticket
+#define MIN_PLAYERS 5 // minimum number of players required for the lottery to run
+
+new ticketCount[MAX_PLAYERS], tickets[MAX_PLAYERS]; // arrays to store the number of tickets each player has bought and the ticket numbers
+
+// function to run the lottery
+public OnLotteryRun(playerid)
+{
+    // check if there are enough players
+    if (GetPlayerCount() < MIN_PLAYERS)
+    {
+        SendClientMessage(playerid, COLOR_WHITE, "There are not enough players to run the lottery.");
+        return 0;
+    }
+
+    // choose a random ticket number
+    new randomTicket = random(GetPlayerCount());
+
+    // get the player associated with the winning ticket
+    new winner = GetPlayerFromTicket(randomTicket);
+
+    // announce the winner
+    SendClientMessageToAll(COLOR_WHITE, "The lottery winner is %s (ticket number %d)!", GetPlayerName(winner), randomTicket);
+
+    // give the winner the prize
+    GivePlayerMoney(winner, 1000);
+}
+
+// function to buy a lottery ticket
+public OnPlayerBuyTicket(playerid, amount)
+{
+    // check if the player has enough money
+    if (GetPlayerMoney(playerid) < amount * TICKET_PRICE)
+    {
+        SendClientMessage(playerid, COLOR_WHITE, "You do not have enough money to buy that many tickets.");
+        return 0;
+    }
+
+    // subtract the ticket cost from the player's money
+    GivePlayerMoney(playerid, -(amount * TICKET_PRICE));
+
+    // add the tickets to the player's ticket count
+    ticketCount[playerid] += amount;
+
+    // assign ticket numbers to the tickets
+    for (new i = 0; i < amount; i++)
+    {
+        tickets[playerid][i] = GetPlayerCount();
+    }
+
+    SendClientMessage(playerid, COLOR_WHITE, "You have successfully bought %d ticket(s).", amount);
+}
+
+// function to get the player associated with a specific ticket number
+public GetPlayerFromTicket(ticket)
+{
+    new count = 0;
+    for (new i = 0; i < MAX_PLAYERS; i++)
+    {
+        for (new j = 0; j < ticketCount[i]; j++)
+        {
+            if (tickets[i][j] == ticket)
+            {
+                return i;
+            }
+        }
+        count += ticketCount[i];
+        if (count > ticket)
+        {
+            return i;
+        }
+    }
+    return INVALID_PLAYER_ID;
+}
