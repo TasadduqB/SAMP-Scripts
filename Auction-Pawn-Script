@@ -1,0 +1,73 @@
+#define AUCTION_PRICE 50000 // auction starting price
+#define AUCTION_INTERVAL 30000 // interval between price increases
+#define AUCTION_INCREMENT 10000 // amount by which the price increases each interval
+
+new auction_timer;
+new auction_price;
+new auction_item[MAX_ITEMS];
+new auction_player[MAX_PLAYERS];
+
+public OnGameModeInit()
+{
+	auction_timer = -1;
+	return 1;
+}
+
+public OnPlayerCommandText(playerid, cmdtext[])
+{
+	if (strcmp(cmdtext, "/auction", true) == 0)
+	{
+		if (auction_timer != -1)
+		{
+			SendClientMessage(playerid, 0xFF0000FF, "An auction is already in progress.");
+			return 1;
+		}
+		
+		if (PlayerInfo[playerid][pAdmin] < 3)
+		{
+			SendClientMessage(playerid, 0xFF0000FF, "You must be an admin to start an auction.");
+			return 1;
+		}
+		
+		if (GetPlayerState(playerid) != PLAYER_STATE_ONFOOT)
+		{
+			SendClientMessage(playerid, 0xFF0000FF, "You must be on foot to start an auction.");
+			return 1;
+		}
+		
+		new item_id = GetPlayerWeapon(playerid);
+		if (item_id == 0)
+		{
+			SendClientMessage(playerid, 0xFF0000FF, "You must have a weapon equipped to start an auction.");
+			return 1;
+		}
+		
+		new item_name[64];
+		GetWeaponName(item_id, item_name, sizeof(item_name));
+		format(string, sizeof(string), "Auction started for %s for $%d. Type /bid to place a bid.", item_name, AUCTION_PRICE);
+		SendClientMessageToAll(0xFFFFFFFF, string);
+		
+		auction_item = item_id;
+		auction_price = AUCTION_PRICE;
+		auction_timer = SetTimer("IncreaseAuctionPrice", AUCTION_INTERVAL, true);
+		return 1;
+	}
+	
+	if (strcmp(cmdtext, "/bid", true) == 0)
+	{
+		if (auction_timer == -1)
+		{
+			SendClientMessage(playerid, 0xFF0000FF, "There is no auction in progress.");
+			return 1;
+		}
+		
+		if (GetPlayerMoney(playerid) < auction_price)
+		{
+			SendClientMessage(playerid, 0xFF0000FF, "You do not have enough money to place a bid.");
+			return 1;
+		}
+		
+		auction_player = playerid;
+		auction_price += AUCTION_INCREMENT;
+		
+		
