@@ -1,0 +1,29 @@
+# Compiled files
+*.amx
+*.lst
+
+# Server data
+accounts/
+logs/
+scriptfiles/
+server_log.txt
+crashinfo.txt
+
+# Windows server files
+samp-server.exe
+announce.exe
+
+# Linux server files
+samp03svr
+
+# Temporary files
+*.tmp
+*.bak
+*~
+
+# IDE files
+*.user
+*.suo
+*.vcproj
+*.vcxproj
+*.sln
